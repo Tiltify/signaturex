@@ -3,11 +3,20 @@ defmodule Signaturex.CryptoHelper do
   Compute a SHA-256 MAC message authentication code from app_secret and data to sign.
   """
   @spec hmac256_to_string(binary, binary) :: binary
-  def hmac256_to_string(app_secret, to_sign) do
-    :crypto.hmac(:sha256, app_secret, to_sign)
-    |> hexlify
-    |> :string.to_lower
-    |> List.to_string
+  if System.otp_release() |> String.to_integer() < 24 do
+    def hmac256_to_string(app_secret, to_sign) do
+      :crypto.hmac(:sha256, app_secret, to_sign)
+      |> hexlify
+      |> :string.to_lower
+      |> List.to_string
+    end
+  else
+    def hmac256_to_string(app_secret, to_sign) do
+      :crypto.mac(:hmac, :sha256, app_secret, to_sign)
+      |> hexlify
+      |> :string.to_lower
+      |> List.to_string
+    end
   end
 
   @doc """
